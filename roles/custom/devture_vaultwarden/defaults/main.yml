@@ -152,6 +152,11 @@ devture_vaultwarden_config_log_level: info
 # which (when enabled) shows timestamps and targets in the logs
 devture_vaultwarden_config_extended_logging: false
 
+# NOTE:
+# Additional environemnt variables for configuration can be discovered from https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
+# and configured using devture_vaultwarden_container_additional_environment_variables
+
+
 # devture_vaultwarden_path_prefix controls the URL prefix where Vaultwarden will be exposed to.
 #
 # By default (`/` prefix), it's accessible at `https://VAULTWARDEN_DOMAIN/`,
