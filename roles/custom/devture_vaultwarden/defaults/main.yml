@@ -1,0 +1,205 @@
+---
+
+devture_vaultwarden_identifier: vaultwarden
+
+# The fully-qualified name of your Vaultwarden server (e.g. `vaultwarden.example.com`)
+devture_vaultwarden_server_fqn: ''
+
+devture_vaultwarden_container_image: "docker.io/vaultwarden/server:{{ devture_vaultwarden_container_image_tag }}"
+devture_vaultwarden_container_image_tag: "1.26.0-alpine"
+devture_vaultwarden_container_image_force_pull: "{{ devture_vaultwarden_container_image.endswith(':latest') }}"
+
+devture_vaultwarden_container_network: vaultwarden
+
+# A list of additional container networks that the container would be connected to.
+# The playbook does not create these networks, so make sure they already exist.
+#
+# Use this to expose this container to another reverse proxy, which runs in a different container network,
+# without exposing all other container services to that other reverse-proxy.
+#
+# For background, see: https://github.com/spantaleev/matrix-docker-ansible-deploy/issues/1498
+devture_vaultwarden_container_additional_networks: []
+
+devture_vaultwarden_uid: ''
+devture_vaultwarden_gid: ''
+
+# A secret used as a base, for generating various other secrets.
+# You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
+devture_vaultwarden_generic_secret_key: ''
+
+devture_vaultwarden_base_path: "/vaultwarden"
+devture_vaultwarden_data_dir_path: "{{ devture_vaultwarden_base_path }}/data"
+devture_vaultwarden_cache_dir_path: "{{ devture_vaultwarden_base_path }}/cache"
+devture_vaultwarden_ephemeral_dir_path: "{{ devture_vaultwarden_base_path }}/ephemeral"
+
+devture_vaultwarden_systemd_required_systemd_services_list: ['docker.service']
+
+devture_vaultwarden_database_type: postgres
+devture_vaultwarden_database_hostname: ''
+devture_vaultwarden_database_port: 5432
+devture_vaultwarden_database_name: vaultwarden
+devture_vaultwarden_database_username: ''
+devture_vaultwarden_database_password: ''
+
+# devture_vaultwarden_config_database_url controls the DATABASE_URL environment variable.
+# See https://github.com/dani-garcia/vaultwarden/wiki/Using-the-PostgreSQL-Backend
+# and the other database-related Wiki articles
+devture_vaultwarden_config_database_url: |-
+  {{
+    ('postgresql://' + devture_vaultwarden_database_username + ':' + devture_vaultwarden_database_password + '@' + devture_vaultwarden_database_hostname + ':' + devture_vaultwarden_database_port | string + '/' + devture_vaultwarden_database_name)
+    if devture_vaultwarden_database_type == 'postgres'
+    else ''
+  }}
+
+# devture_vaultwarden_config_domain controls the DOMAIN environment variable,
+# which tells Vaultwarden its full URL (e.g. `https://vaultwarden.DOMAIN/prefix`)
+devture_vaultwarden_config_domain: "https://{{ devture_vaultwarden_server_fqn }}{{ devture_vaultwarden_path_prefix }}"
+
+# devture_vaultwarden_config_signups_enabled controls the SIGNUPS_ALLOWED environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Disable-registration-of-new-users
+# Related to: devture_vaultwarden_config_signups_domains_whitelist
+# Related to: devture_vaultwarden_config_invitations_allowed
+devture_vaultwarden_config_signups_enabled: false
+
+# devture_vaultwarden_config_signups_verify controls the SIGNUPS_VERIFY environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Disable-registration-of-new-users#restricting-registrations-to-certain-email-domains
+devture_vaultwarden_config_signups_verify: false
+
+# devture_vaultwarden_config_invitations_allowed controls the INVITATIONS_ALLOWED environment variable,
+# which controls if owners and Organization admins can invite people (even when signups are enabled).
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Disable-invitations
+# Related to: devture_vaultwarden_config_signups_enabled
+devture_vaultwarden_config_invitations_allowed: true
+
+# devture_vaultwarden_config_signups_enabled controls the SIGNUPS_DOMAINS_WHITELIST environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Disable-registration-of-new-users#restricting-registrations-to-certain-email-domains
+# Note: this is meant to be a list of domain strings (e.g. `['example.com', 'another.com']`, not a comma-separated string like shown in the upstream docs.
+devture_vaultwarden_config_signups_domains_whitelist: []
+
+# devture_vaultwarden_config_admin_token controls the SHOW_PASSWORD_HINT environment variable,
+# which can allow showing password hints directly in the user interface.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Password-hint-display
+devture_vaultwarden_config_show_password_hint: false
+
+# devture_vaultwarden_config_show_password_hint controls the ADMIN_TOKEN environment variable,
+# which (if set) exposes an /admin page, where people possesing this token can perform administrative actions.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Enabling-admin-page
+devture_vaultwarden_config_admin_token: ''
+
+# devture_vaultwarden_config_rocket_port controls the ROCKET_PORT environment variable,
+# which controls Vaultwarden's HTTP port in the container
+devture_vaultwarden_config_rocket_port: 8080
+
+# devture_vaultwarden_config_websocket_enabled controls the WEBSOCKET_ENABLED environment variable,
+# which controls if Vaultwarden enables websockets
+devture_vaultwarden_config_websocket_enabled: true
+
+# devture_vaultwarden_config_rocket_port controls the WEBSOCKET_PORT environment variable,
+# which controls Vaultwarden's Websocket port in the container
+devture_vaultwarden_config_websocket_port: 3012
+
+# devture_vaultwarden_config_rocket_limits controls the ROCKET_LIMITS environment variable,
+# which controls the maximum size of uploaded files.
+# See: devture_vaultwarden_max_json_mb
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Changing-the-API-request-size-limit
+devture_vaultwarden_config_rocket_limits: "{json={{ devture_vaultwarden_max_json_mb | int * 1024 * 1024 }}}"
+
+# devture_vaultwarden_config_smtp_from controls the SMTP_FROM environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_from: "noreply@{{ devture_vaultwarden_server_fqn }}"
+
+# devture_vaultwarden_config_smtp_host controls the SMTP_HOST environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_host: ''
+
+# devture_vaultwarden_config_smtp_port controls the SMTP_PORT environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+# See: devture_vaultwarden_config_smtp_security
+devture_vaultwarden_config_smtp_port: 587
+
+# devture_vaultwarden_config_smtp_security controls the SMTP_SECURITY environment variable.
+# Valid values: starttls, force_tls, off
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_security: starttls
+
+# devture_vaultwarden_config_smtp_username controls the SMTP_USERNAME environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_username: ''
+
+# devture_vaultwarden_config_smtp_password controls the SMTP_PASSWORD environment variable.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_password: ''
+
+# devture_vaultwarden_config_smtp_auth_mechanism controls the SMTP_AUTH_MECHANISM environment variable.
+# Valid values: Plain, Login, Xoauth2. Multiple may be provided when comma-separated
+# See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
+devture_vaultwarden_config_smtp_auth_mechanism: Login
+
+# devture_vaultwarden_config_icon_cache_folder controls the ICON_CACHE_FOLDER environment variable.
+devture_vaultwarden_config_icon_cache_folder: /cache/icon_cache
+
+# devture_vaultwarden_config_sends_folder controls the SENDS_FOLDER environment variable.
+devture_vaultwarden_config_sends_folder: /ephemeral/sends
+
+# devture_vaultwarden_config_tmp_folder controls the TMP_FOLDER environment variable.
+devture_vaultwarden_config_tmp_folder: /ephemeral/tmp
+
+# devture_vaultwarden_config_log_level controls the LOG_LEVEL environment variable.
+# Valid values: trace, debug, info, warn, error, off
+devture_vaultwarden_config_log_level: info
+
+# devture_vaultwarden_config_extended_logging controls the EXTENDED_LOGGING environment variable,
+# which (when enabled) shows timestamps and targets in the logs
+devture_vaultwarden_config_extended_logging: false
+
+# devture_vaultwarden_path_prefix controls the URL prefix where Vaultwarden will be exposed to.
+#
+# By default (`/` prefix), it's accessible at `https://VAULTWARDEN_DOMAIN/`,
+# but you can use another prefix for additional security.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
+#
+# Example: '/my-secret-warden'
+devture_vaultwarden_path_prefix: '/'
+
+# devture_vaultwarden_max_json_mb the maximum size of uploaded JSON payloads.
+# This ultimately influences the json setting of devture_vaultwarden_config_rocket_limits.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Changing-the-API-request-size-limit
+devture_vaultwarden_max_json_mb: 10
+
+# devture_vaultwarden_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `../templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `devture_vaultwarden_container_labels_additional_labels`.
+devture_vaultwarden_container_labels_traefik_enabled: true
+devture_vaultwarden_container_labels_traefik_docker_network: ''
+devture_vaultwarden_container_labels_traefik_rule_ui: "Host(`{{ devture_vaultwarden_server_fqn }}`){% if devture_vaultwarden_path_prefix != '/' %} && PathPrefix(`{{ devture_vaultwarden_path_prefix | quote }}`){% endif %}"
+devture_vaultwarden_container_labels_traefik_rule_websocket: 'Host(`{{ devture_vaultwarden_server_fqn }}`) && Path(`{{ devture_vaultwarden_path_prefix | quote }}notifications/hub`)'
+devture_vaultwarden_container_labels_traefik_entrypoints: web-secure
+devture_vaultwarden_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# devture_vaultwarden_container_http_bind_port controls whether (and how) the container exposes its HTTP port (`devture_vaultwarden_config_rocket_port`).
+# Leave empty to not expose it.
+# Example values: `127.0.0.1:8080`, `0.0.0.0:8080`, `8080`.
+devture_vaultwarden_container_http_bind_port: ''
+
+# devture_vaultwarden_container_websocket_bind_port controls whether (and how) the container exposes its websocket port (`devture_vaultwarden_config_websocket_port`).
+# Leave empty to not expose it.
+# Example values: `127.0.0.1:3012`, `0.0.0.0:3012`, `3012`.
+devture_vaultwarden_container_websocket_bind_port: ''
+
+# devture_vaultwarden_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `../templates/labels.j2` for details.
+#
+# Example:
+# devture_vaultwarden_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+devture_vaultwarden_container_labels_additional_labels: ''
+
+# devture_vaultwarden_container_additional_environment_variables contains a multiline string with additional environment variables to pass to the container.
+#
+# Example:
+# devture_vaultwarden_container_additional_environment_variables: |
+#   VAR=1
+#   ANOTHER=value
+devture_vaultwarden_container_additional_environment_variables: ''

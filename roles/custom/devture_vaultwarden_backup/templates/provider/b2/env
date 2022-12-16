@@ -1,0 +1,3 @@
+B2_KEY_ID={{ devture_vaultwarden_backup_b2_key_id }}
+B2_KEY_SECRET={{ devture_vaultwarden_backup_b2_key_secret }}
+B2_BUCKET={{ devture_vaultwarden_backup_b2_bucket }}

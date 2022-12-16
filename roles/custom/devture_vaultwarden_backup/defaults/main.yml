@@ -1,0 +1,64 @@
+---
+
+devture_vaultwarden_backup_enabled: true
+
+devture_vaultwarden_backup_identifier: vaultwarden-backup
+
+devture_vaultwarden_backup_base_path: "/vaultwarden-backup"
+devture_vaultwarden_backup_bin_path: "{{ devture_vaultwarden_backup_base_path }}/bin"
+devture_vaultwarden_backup_etc_path: "{{ devture_vaultwarden_backup_base_path }}/etc"
+devture_vaultwarden_backup_data_path: "{{ devture_vaultwarden_backup_base_path }}/data"
+
+devture_vaultwarden_backup_uid: ''
+devture_vaultwarden_backup_gid: ''
+
+# devture_vaultwarden_backup_encryption_password holds a password to use for symmetric gpg encryption
+devture_vaultwarden_backup_encryption_password: ''
+
+# devture_vaultwarden_backup_stop_vaultwarden_while_running controls whether the Vaultwarden systemd service will be stopped while backups are running.
+# It will be started back up after the backup process.
+#
+# By default, we favor extra safety, at the expense of some downtime while backing up.
+devture_vaultwarden_backup_stop_vaultwarden_while_running: true
+devture_vaultwarden_backup_stop_vaultwarden_systemd_service: vaultwarden.service
+
+# devture_vaultwarden_backup_paths_to_backup contains a list of paths to include in the backup.
+# Example: [/vaultwarden]
+devture_vaultwarden_backup_paths_to_backup: []
+
+# devture_vaultwarden_backup_paths_to_exclude contains a list of paths to exclude from the backup
+# Example: [/vaultwarden/vaultwarden/cache, /vaultwarden/vaultwarden/ephemeral]
+#
+# Playbook-managed paths are injected into `devture_vaultwarden_backup_paths_to_exclude_auto`.
+# To define your own paths, use `devture_vaultwarden_backup_paths_to_exclude_additional`.
+# If you'd like to override the auto-excluded paths from the playbook, override `devture_vaultwarden_backup_paths_to_exclude_auto`
+# or change `devture_vaultwarden_backup_paths_to_exclude`.
+devture_vaultwarden_backup_paths_to_exclude: "{{ devture_vaultwarden_backup_paths_to_exclude_auto + devture_vaultwarden_backup_paths_to_exclude_additional }}"
+devture_vaultwarden_backup_paths_to_exclude_auto: [devture_vaultwarden_backup_data_path + '/vaultwarden-latest-backup.tar.gpg']
+devture_vaultwarden_backup_paths_to_exclude_additional: []
+
+# devture_vaultwarden_backup_schedule contains a systemd OnCalendar definition which controls how often `vaultwarden-backup.timer` runs
+devture_vaultwarden_backup_schedule: '*-*-* 06:30:00'
+
+devture_vaultwarden_backup_b2_enabled: false
+devture_vaultwarden_backup_b2_container_image: docker.io/tianon/backblaze-b2:3.6.0
+devture_vaultwarden_backup_b2_container_image_force_pull: "{{ devture_vaultwarden_backup_b2_container_image.endswith(':latest') }}"
+devture_vaultwarden_backup_b2_bucket: bucket-name
+devture_vaultwarden_backup_b2_key_id: ~
+devture_vaultwarden_backup_b2_key_secret: ~
+
+# devture_vaultwarden_backup_post_backup_custom_shell_commands contains a multiline string containing shell (bash) commands to execute
+# after the backup file is created and before pushing it to any backup providers.
+#
+# These commands are injected into `../templates/backup.j2` (`{{ devture_vaultwarden_backup_bin_path }}/backup` on the server).
+#
+# Example:
+#
+# # The commands below expose the latest backup as a `/home/backup/vaultwarden-latest-backup.tar.gpg` file,
+# # to be periodically pulled from a remote machine over SSH (via `backup@vaultwarden.DOMAIN`).
+# # Setting up this `backup` user, home directory and access (SSH keys, etc.) is not managed by the playbook.
+# devture_vaultwarden_backup_post_backup_custom_shell_commands: |
+#   cp {{ devture_vaultwarden_backup_data_path }}/vaultwarden-latest-backup.tar.gpg /home/backup/vaultwarden-latest-backup.tar.gpg
+#   chown backup:backup /home/backup/vaultwarden-latest-backup.tar.gpg
+#   chmod 400 /home/backup/vaultwarden-latest-backup.tar.gpg
+devture_vaultwarden_backup_post_backup_custom_shell_commands: ''

@@ -1,0 +1,6 @@
+[Unit]
+Description=Performs a Vaultwarden backup ({{ devture_vaultwarden_backup_identifier }})
+
+[Service]
+Type=oneshot
+ExecStart={{ devture_vaultwarden_backup_bin_path }}/backup

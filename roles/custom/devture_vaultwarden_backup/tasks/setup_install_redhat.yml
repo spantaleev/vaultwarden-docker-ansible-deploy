@@ -1,0 +1,7 @@
+---
+
+- name: Ensure gpg installed
+  ansible.builtin.yum:
+    name:
+      - gnupg2
+    state: present

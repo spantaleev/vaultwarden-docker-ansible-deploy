@@ -1,0 +1,57 @@
+---
+
+- ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_install_redhat.yml"
+  when: ansible_os_family == 'RedHat'
+
+- ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_install_debian.yml"
+  when: ansible_os_family == 'Debian'
+
+- name: Ensure Vaultwarden backup paths exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ devture_vaultwarden_backup_uid }}"
+    group: "{{ devture_vaultwarden_backup_gid }}"
+  with_items:
+    - "{{ devture_vaultwarden_backup_base_path }}"
+    - "{{ devture_vaultwarden_backup_bin_path }}"
+    - "{{ devture_vaultwarden_backup_etc_path }}"
+    - "{{ devture_vaultwarden_backup_data_path }}"
+
+- name: Ensure backup password file installed
+  ansible.builtin.copy:
+    content: "{{ devture_vaultwarden_backup_encryption_password }}"
+    dest: "{{ devture_vaultwarden_backup_etc_path }}/backup-password"
+    mode: 0750
+
+- name: Ensure backup program installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/bin/backup.j2"
+    dest: "{{ devture_vaultwarden_backup_bin_path }}/backup"
+    mode: 0750
+
+- name: Ensure backup systemd services installed
+  ansible.builtin.template:
+    src: "{{ role_path }}/templates/systemd/backup.{{ item }}.j2"
+    dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ devture_vaultwarden_backup_identifier }}.{{ item }}"
+    mode: 0640
+  with_items:
+    - service
+    - timer
+  register: devture_vaultwarden_backup_systemd_service_result
+
+- when: devture_vaultwarden_backup_b2_enabled | bool
+  block:
+    - name: Ensure B2 environment variables created
+      ansible.builtin.template:
+        src: "{{ role_path }}/templates/provider/b2/env"
+        dest: "{{ devture_vaultwarden_backup_etc_path }}/b2-env"
+        mode: 0640
+
+    - name: Ensure B2 image is pulled
+      community.docker.docker_image:
+        name: "{{ devture_vaultwarden_backup_b2_container_image }}"
+        source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+        force_source: "{{ devture_vaultwarden_backup_b2_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
+        force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else devture_vaultwarden_backup_b2_container_image_force_pull }}"

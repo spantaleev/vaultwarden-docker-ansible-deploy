@@ -1,0 +1,11 @@
+---
+
+- block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_install.yml"
+  tags:
+    - setup-all
+    - setup-vaultwarden
+    - install-all
+    - install-vaultwarden

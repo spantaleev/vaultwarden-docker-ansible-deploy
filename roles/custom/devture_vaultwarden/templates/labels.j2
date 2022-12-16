@@ -1,0 +1,39 @@
+{% if devture_vaultwarden_container_labels_traefik_enabled %}
+traefik.enable=true
+
+{% if devture_vaultwarden_container_labels_traefik_docker_network %}
+traefik.docker.network={{ devture_vaultwarden_container_labels_traefik_docker_network }}
+{% endif %}
+
+
+{# Middlewares #}
+{% if devture_vaultwarden_path_prefix != '/' %}
+{#
+    This redirect-slash middleware redirects a custom prefix (e.g. `/passwords`) which
+    has no trailing slash to the same thing, but with a trailing slash (e.g. `/passwords/`).
+    Without this, the UI attempts to load assets (with relative URLs) from the wrong path.
+#}
+traefik.http.middlewares.{{ devture_vaultwarden_identifier }}-no-trailing-slash-redirect.redirectregex.regex=^(https?)://([^/]+){{ devture_vaultwarden_path_prefix | quote }}$
+traefik.http.middlewares.{{ devture_vaultwarden_identifier }}-no-trailing-slash-redirect.redirectregex.replacement=${1}://${2}{{ devture_vaultwarden_path_prefix | quote }}/
+{% endif %}
+
+{# Vaultwarden UI & API #}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-ui.rule={{ devture_vaultwarden_container_labels_traefik_rule_ui }}
+{% if devture_vaultwarden_path_prefix != '/' %}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-ui.middlewares={{ devture_vaultwarden_identifier }}-no-trailing-slash-redirect
+{% endif %}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-ui.service={{ devture_vaultwarden_identifier }}-ui
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-ui.tls.certResolver={{ devture_vaultwarden_container_labels_traefik_tls_certResolver }}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-ui.entrypoints={{ devture_vaultwarden_container_labels_traefik_entrypoints }}
+traefik.http.services.{{ devture_vaultwarden_identifier }}-ui.loadbalancer.server.port={{ devture_vaultwarden_config_rocket_port }}
+
+
+{# Vaultwarden Websocket API #}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-websocket.rule={{ devture_vaultwarden_container_labels_traefik_rule_websocket }}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-websocket.service={{ devture_vaultwarden_identifier }}-websocket
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-websocket.tls.certResolver={{ devture_vaultwarden_container_labels_traefik_tls_certResolver }}
+traefik.http.routers.{{ devture_vaultwarden_identifier }}-websocket.entrypoints={{ devture_vaultwarden_container_labels_traefik_entrypoints }}
+traefik.http.services.{{ devture_vaultwarden_identifier }}-websocket.loadbalancer.server.port={{ devture_vaultwarden_config_websocket_port }}
+{% endif %}
+
+{{ devture_vaultwarden_container_labels_additional_labels }}

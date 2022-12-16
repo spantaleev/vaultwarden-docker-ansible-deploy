@@ -1,0 +1,7 @@
+---
+
+- name: Ensure gpg installed
+  ansible.builtin.apt:
+    name:
+      - gnupg
+    state: present

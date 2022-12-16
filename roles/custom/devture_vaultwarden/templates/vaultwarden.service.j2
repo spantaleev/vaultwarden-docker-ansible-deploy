@@ -1,0 +1,61 @@
+[Unit]
+Description=Vaultwarden ({{ devture_vaultwarden_identifier }})
+{% for service in devture_vaultwarden_systemd_required_systemd_services_list %}
+Requires={{ service }}
+After={{ service }}
+{% endfor %}
+DefaultDependencies=no
+
+[Service]
+Type=simple
+Environment="HOME={{ devture_systemd_docker_base_systemd_unit_home_path }}"
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ devture_vaultwarden_identifier }} 2>/dev/null'
+ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ devture_vaultwarden_identifier }} 2>/dev/null'
+
+{#
+	Health check parameters were changed (`--health-start-period` and `--health-interval`) because by default:
+	- health checks start immediately.. and they always fail, because the HTTP server takes a bit of time to start
+	- the recheck interval is too long (60s) and the service is considered `starting`
+	- when a service is not `healthy`, Traefik does not reverse-proxy to it -- leading to 1 minute downtime every single time this restarts
+#}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
+			--rm \
+			--name={{ devture_vaultwarden_identifier }} \
+			--log-driver=none \
+			--network={{ devture_vaultwarden_container_network }} \
+			--user={{ devture_vaultwarden_uid }}:{{ devture_vaultwarden_gid }} \
+			--cap-drop=ALL \
+			--read-only \
+			--hostname={{ devture_vaultwarden_server_fqn }} \
+			{% if devture_vaultwarden_container_http_bind_port %}
+			-p {{ devture_vaultwarden_container_http_bind_port }}:{{ devture_vaultwarden_config_rocket_port }} \
+			{% endif %}
+			{% if devture_vaultwarden_container_websocket_bind_port %}
+			-p {{ devture_vaultwarden_container_websocket_bind_port }}:{{ devture_vaultwarden_config_websocket_port }} \
+			{% endif %}
+			--health-start-period=10s \
+			--health-interval=10s \
+			--env-file={{ devture_vaultwarden_base_path }}/env \
+			--label-file={{ devture_vaultwarden_base_path }}/labels \
+			--mount type=bind,src={{ devture_vaultwarden_data_dir_path }},dst=/data \
+			--mount type=bind,src={{ devture_vaultwarden_cache_dir_path }},dst=/cache \
+			--mount type=bind,src={{ devture_vaultwarden_ephemeral_dir_path }},dst=/ephemeral \
+			--mount type=bind,src=/etc/timezone,dst=/etc/timezone,ro \
+			--mount type=bind,src=/etc/localtime,dst=/etc/localtime,ro \
+			--tmpfs=/tmp:rw,noexec,nosuid,size=128m \
+			{{ devture_vaultwarden_container_image }}
+
+{% for network in devture_vaultwarden_container_additional_networks %}
+ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} network connect {{ network }} {{ devture_vaultwarden_identifier }}
+{% endfor %}
+
+ExecStart={{ devture_systemd_docker_base_host_command_docker }} start --attach {{ devture_vaultwarden_identifier }}
+
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} kill {{ devture_vaultwarden_identifier }} 2>/dev/null'
+ExecStop=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ devture_vaultwarden_identifier }} 2>/dev/null'
+Restart=always
+RestartSec=30
+SyslogIdentifier={{ devture_vaultwarden_identifier }}
+
+[Install]
+WantedBy=multi-user.target

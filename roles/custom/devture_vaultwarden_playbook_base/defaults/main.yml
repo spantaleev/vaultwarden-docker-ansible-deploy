@@ -1,0 +1,19 @@
+---
+
+devture_vaultwarden_playbook_user_username: vaultwarden
+devture_vaultwarden_playbook_user_groupname: vaultwarden
+
+# By default, the playbook creates the user (`devture_vaultwarden_playbook_user_username`)
+# and group (`devture_vaultwarden_playbook_user_groupname`) with a random id.
+# To use a specific user/group id, override these variables.
+devture_vaultwarden_playbook_uid: ~
+devture_vaultwarden_playbook_gid: ~
+
+# Controls the base path where all services will be installed
+devture_vaultwarden_playbook_base_path: /vaultwarden
+devture_vaultwarden_playbook_base_path_mode: "750"
+
+# The architecture that your server runs.
+# Recognized values by us are 'amd64', 'arm32' and 'arm64'.
+# Not all architectures support all services, so your experience (on non-amd64) may vary.
+devture_vaultwarden_playbook_architecture: "{{ 'amd64' if ansible_architecture == 'x86_64' else ('arm64' if ansible_architecture == 'aarch64' else ('arm32' if ansible_architecture.startswith('armv') else '')) }}"

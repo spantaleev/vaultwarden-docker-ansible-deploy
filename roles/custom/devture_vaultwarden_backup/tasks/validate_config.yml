@@ -1,0 +1,17 @@
+---
+
+- name: Fail if Vaultwarden backup settings not defined
+  ansible.builtin.fail:
+    msg: >-
+      You need to define a required configuration setting (`{{ item }}`) for using this role.
+  when: "vars[item] == ''"
+  with_items:
+    - devture_vaultwarden_backup_encryption_password
+    - devture_vaultwarden_backup_uid
+    - devture_vaultwarden_backup_gid
+
+- name: Fail if empty devture_vaultwarden_backup_paths_to_backup
+  ansible.builtin.fail:
+    msg: >-
+      You need at least one path to backup in `devture_vaultwarden_backup_paths_to_backup`
+  when: devture_vaultwarden_backup_paths_to_backup | length == 0

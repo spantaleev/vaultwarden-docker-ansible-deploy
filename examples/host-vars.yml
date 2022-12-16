@@ -1,0 +1,49 @@
+---
+
+devture_vaultwarden_server_fqn: "vaultwarden.YOUR_DOMAIN_NAME_HERE"
+
+# A secret used as a base, for generating various other secrets.
+# You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
+devture_vaultwarden_generic_secret_key: ''
+
+# The email address to provide to Traefik (which is then provided to Let's Encrypt) for obtaining SSL certificates
+devture_traefik_ssl_email_address: ''
+
+# A Postgres password to use for the superuser Postgres user (called `root` by default).
+#
+# The playbook creates additional Postgres users and databases (one for each enabled service) using this superuser account.
+devture_postgres_connection_password: ''
+
+# Configure a strong admin secret here (generated with `pwgen -s 64 1`, etc).
+# You will need this for accessing the /admin section useful for creating your first user
+# and for doing various maintenance tasks.
+# In the future, you can also consider disabling the /admin section by removing this configuration line.
+devture_vaultwarden_config_admin_token: ''
+
+# For additional security, we recommend hosting Vaultwarden at a subpath.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
+#
+# Choose your own custom path below.
+# When using a path prefix, Vaultwarden will be available at: https://VAULTWARDEN_DOMAIN/PATH_PREFIX
+# while the homepage (/) shows a 404 HTTP error.
+#
+# If you'd like to host at the root (without a path prefix), remove this configuration line.
+devture_vaultwarden_path_prefix: /my-secret-warden
+
+# Require people to validate their email addresses. When enabled, SMTP settings (below) are required.
+devture_vaultwarden_config_signups_verify: true
+
+# Example SMTP settings.
+# If you keep `devture_vaultwarden_config_signups_verify` enabled, you will need to specify them.
+# There are more SMTP variables in `roles/custom/devture_vaultwarden/defaults/main.yml`, in case you need them.
+# If you decide you won't set up SMTP, consider removing all these configuration lines below
+# and removing `devture_vaultwarden_config_signups_verify: true` above.
+devture_vaultwarden_config_smtp_from: vaultwarden@DOMAIN
+devture_vaultwarden_config_smtp_host: ''
+devture_vaultwarden_config_smtp_port: 587
+devture_vaultwarden_config_smtp_security: starttls
+devture_vaultwarden_config_smtp_username: ''
+devture_vaultwarden_config_smtp_password: ''
+
+# You can discover additional settings that you can customize here.
+# Look for them in `defaults/main.yml` files under `roles/`.

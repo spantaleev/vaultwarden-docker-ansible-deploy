@@ -1,0 +1,9 @@
+---
+
+- name: Ensure Vaultwarden base paths exists
+  ansible.builtin.file:
+    path: "{{ devture_vaultwarden_playbook_base_path }}"
+    state: directory
+    mode: "{{ devture_vaultwarden_playbook_base_path_mode }}"
+    owner: "{{ devture_vaultwarden_playbook_uid }}"
+    group: "{{ devture_vaultwarden_playbook_gid }}"

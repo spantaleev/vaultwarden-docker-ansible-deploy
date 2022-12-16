@@ -1,0 +1,9 @@
+[Unit]
+Description=Launches {{ devture_vaultwarden_backup_identifier }}.service periodically
+
+[Timer]
+Unit={{ devture_vaultwarden_backup_identifier }}.service
+OnCalendar={{ devture_vaultwarden_backup_schedule }}
+
+[Install]
+WantedBy=timers.target

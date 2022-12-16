@@ -1,0 +1,309 @@
+---
+
+########################################################################
+#                                                                      #
+# Playbook                                                             #
+#                                                                      #
+########################################################################
+
+# Controls whether to install Docker or not
+# Also see `devture_docker_sdk_for_python_installation_enabled`.
+devture_vaultwarden_playbook_docker_installation_enabled: true
+
+# Controls whether to run the Traefik role or not
+# See the `com.devture.ansible.role.traefik` section below for role configuration.
+#
+# There's a difference between `devture_traefik_enabled` and `devture_vaultwarden_playbook_traefik_role_enabled`.
+# `devture_traefik_enabled` controls what the Traefik role would do - when not enabled, it will run uninstall tasks, etc.
+# `devture_vaultwarden_playbook_traefik_role_enabled` controls if the Traefik role would even run at all.
+#
+# Sometimes, you're installing Traefik via a different (related playbook) which uses the same role.
+# In such cases, you'd like to disable the role in this playbook from bothering with Traefik at all (`devture_vaultwarden_playbook_traefik_role_enabled: false`).
+# If you used `devture_traefik_enabled: false` + `devture_vaultwarden_playbook_traefik_role_enabled: true` instead, you'd see the Treafik role here
+# try to delete Traefik data (`/devture-traefik`) installed by the other playbook.
+devture_vaultwarden_playbook_traefik_role_enabled: true
+
+# Controls whether to attach Traefik labels to services.
+# This is separate from `devture_traefik_enabled` and `devture_vaultwarden_playbook_traefik_role_enabled`,
+# because you may wish to disable Traefik installation by the playbook, yet still use Traefik
+# installed in another way.
+devture_vaultwarden_playbook_traefik_labels_enabled: true
+
+# Controls the additional network that reverse-proxyable services will be connected to.
+devture_vaultwarden_playbook_reverse_proxyable_services_additional_network: "{{ devture_traefik_container_network if devture_traefik_enabled else '' }}"
+
+########################################################################
+#                                                                      #
+# /Playbook                                                            #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.systemd_service_manager                     #
+#                                                                      #
+########################################################################
+
+devture_systemd_service_manager_services_list_auto: |
+  {{
+    ([{'name': (devture_vaultwarden_identifier + '.service'), 'priority': 1000, 'groups': ['vaultwarden', 'vaultwarden-server']}])
+    +
+    ([{'name': (devture_vaultwarden_backup_identifier + '.timer'), 'priority': 2500, 'groups': ['vaultwarden', 'vaultwarden-backup']}] if devture_vaultwarden_backup_enabled else [])
+    +
+    ([{'name': (devture_postgres_identifier + '.service'), 'priority': 500, 'groups': ['vaultwarden', 'postgres']}] if devture_postgres_enabled else [])
+    +
+    ([{'name': (devture_postgres_backup_identifier + '.service'), 'priority': 5000, 'groups': ['vaultwarden', 'backup', 'postgres-backup']}] if devture_postgres_backup_enabled else [])
+    +
+    ([{'name': 'devture-traefik.service', 'priority': 3000, 'groups': ['vaultwarden', 'traefik', 'reverse-proxies']}] if devture_vaultwarden_playbook_traefik_role_enabled else [])
+  }}
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.systemd_service_manager                    #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# devture_vaultwarden                                                  #
+#                                                                      #
+########################################################################
+
+devture_vaultwarden_identifier: vaultwarden-vaultwarden
+
+devture_vaultwarden_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_vaultwarden_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+devture_vaultwarden_base_path: "{{ devture_vaultwarden_playbook_base_path }}/vaultwarden"
+
+devture_vaultwarden_systemd_required_systemd_services_list: |
+  {{
+    (['docker.service'])
+    +
+    ([devture_postgres_identifier ~ '.service'] if devture_postgres_enabled else [])
+  }}
+
+devture_vaultwarden_container_additional_networks: "{{ [devture_vaultwarden_playbook_reverse_proxyable_services_additional_network] if devture_vaultwarden_playbook_reverse_proxyable_services_additional_network else [] }}"
+
+devture_vaultwarden_container_labels_traefik_enabled: "{{ devture_vaultwarden_playbook_traefik_labels_enabled }}"
+devture_vaultwarden_container_labels_traefik_docker_network: "{{ devture_vaultwarden_playbook_reverse_proxyable_services_additional_network }}"
+
+devture_vaultwarden_database_hostname: "{{ devture_postgres_identifier if devture_postgres_enabled else '' }}"
+devture_vaultwarden_database_port: "{{ '5432' if devture_postgres_enabled else '' }}"
+devture_vaultwarden_database_username: "vaultwarden"
+devture_vaultwarden_database_password: "{{ '%s' | format(devture_vaultwarden_generic_secret_key) | password_hash('sha512', 'db.vaultwarden', rounds=655555) | to_uuid }}"
+
+########################################################################
+#                                                                      #
+# /devture_vaultwarden                                                 #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# devture_vaultwarden_backup                                           #
+#                                                                      #
+########################################################################
+
+devture_vaultwarden_backup_enabled: false
+
+devture_vaultwarden_backup_base_path: "{{ devture_vaultwarden_playbook_base_path }}/backup"
+
+devture_vaultwarden_backup_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_vaultwarden_backup_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+devture_vaultwarden_backup_stop_vaultwarden_systemd_service: "{{ devture_vaultwarden_identifier }}.service"
+
+devture_vaultwarden_backup_paths_to_backup: "{{ [devture_vaultwarden_playbook_base_path] }}"
+
+devture_vaultwarden_backup_paths_to_exclude_auto: |
+  {{
+    (
+      [devture_vaultwarden_backup_data_path + '/vaultwarden-latest-backup.tar.gpg']
+    )
+    +
+    ([
+      devture_vaultwarden_cache_dir_path,
+      devture_vaultwarden_ephemeral_dir_path,
+    ])
+    +
+    ([
+      devture_postgres_base_path
+    ] if devture_postgres_enabled else [])
+    +
+    ([
+      devture_postgres_backup_base_path
+    ] if devture_postgres_backup_enabled else [])
+  }}
+
+########################################################################
+#                                                                      #
+# /devture_vaultwarden_backup                                          #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.postgres                                    #
+#                                                                      #
+########################################################################
+
+# To completely disable installing Postgres, use `devture_postgres_enabled: false`.
+
+devture_postgres_identifier: vaultwarden-postgres
+
+devture_postgres_architecture: "{{ devture_vaultwarden_playbook_architecture }}"
+
+devture_postgres_base_path: "{{ devture_vaultwarden_playbook_base_path }}/postgres"
+
+devture_postgres_container_network: "{{ devture_vaultwarden_container_network }}"
+
+devture_postgres_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_postgres_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+devture_postgres_systemd_services_to_stop_for_maintenance_list: |
+  {{
+    ([(devture_vaultwarden_identifier + '.service')])
+  }}
+
+devture_postgres_managed_databases_auto: |
+  {{
+    [{
+      'name': devture_vaultwarden_database_name,
+      'username': devture_vaultwarden_database_username,
+      'password': devture_vaultwarden_database_password,
+    }]
+  }}
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.postgres                                   #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.postgres_backup                             #
+#                                                                      #
+########################################################################
+
+devture_postgres_backup_enabled: false
+
+devture_postgres_backup_identifier: vaultwarden-postgres-backup
+
+devture_postgres_backup_architecture: "{{ devture_vaultwarden_playbook_architecture }}"
+
+devture_postgres_backup_base_path: "{{ devture_vaultwarden_playbook_base_path }}/postgres-backup"
+
+devture_postgres_backup_systemd_required_services_list: |
+  {{
+    (['docker.service'])
+    +
+    ([(devture_postgres_identifier + '.service')] if devture_postgres_enabled else [])
+  }}
+
+devture_postgres_backup_container_network: "{{ devture_vaultwarden_container_network }}"
+
+devture_postgres_backup_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_postgres_backup_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+devture_postgres_backup_connection_hostname: "{{ devture_postgres_connection_hostname if devture_postgres_enabled else '' }}"
+devture_postgres_backup_connection_port: "{{ devture_postgres_connection_port if devture_postgres_enabled else 5432 }}"
+devture_postgres_backup_connection_username: "{{ devture_postgres_connection_username if devture_postgres_enabled else '' }}"
+devture_postgres_backup_connection_password: "{{ devture_postgres_connection_password if devture_postgres_enabled else '' }}"
+
+devture_postgres_backup_postgres_data_path: "{{ devture_postgres_data_path if devture_postgres_enabled else '' }}"
+
+devture_postgres_backup_databases: "{{ devture_postgres_managed_databases | map(attribute='name') if devture_postgres_enabled else [] }}"
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.postgres_backup                            #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.playbook_state_preserver                    #
+#                                                                      #
+########################################################################
+
+# To completely disable this feature, use `devture_playbook_state_preserver_enabled: false`.
+
+devture_playbook_state_preserver_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_playbook_state_preserver_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+devture_playbook_state_preserver_vars_preservation_dst: "{{ devture_vaultwarden_playbook_base_path }}/vars.yml"
+
+devture_playbook_state_preserver_commit_hash_preservation_dst: "{{ devture_vaultwarden_playbook_base_path }}/git_hash.yml"
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.playbook_state_preserver                   #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.traefik                                     #
+#                                                                      #
+########################################################################
+
+# To completely disable the Traefik role from running, use `devture_vaultwarden_playbook_traefik_role_enabled: false`.
+# See the comment there for more details about why we have both `devture_traefik_enabled` and `devture_vaultwarden_playbook_traefik_role_enabled`.
+devture_traefik_enabled: "{{ devture_vaultwarden_playbook_traefik_role_enabled }}"
+
+devture_traefik_uid: "{{ devture_vaultwarden_playbook_uid }}"
+devture_traefik_gid: "{{ devture_vaultwarden_playbook_gid }}"
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.traefik                                    #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.docker_sdk_for_python                       #
+#                                                                      #
+########################################################################
+
+# To completely disable installing the Docker SDK for Python, use `devture_docker_sdk_for_python_installation_enabled: false`.
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.docker_sdk_for_python                      #
+#                                                                      #
+########################################################################
+
+
+
+########################################################################
+#                                                                      #
+# com.devture.ansible.role.timesync                                    #
+#                                                                      #
+########################################################################
+
+# To completely disable installing systemd-timesyncd/ntpd, use `devture_timesync_installation_enabled: false`.
+
+########################################################################
+#                                                                      #
+# /com.devture.ansible.role.timesync                                   #
+#                                                                      #
+########################################################################

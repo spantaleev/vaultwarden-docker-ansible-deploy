@@ -1,0 +1,24 @@
+---
+
+- name: Ensure Vaultwarden group is created
+  ansible.builtin.group:
+    name: "{{ devture_vaultwarden_playbook_user_groupname }}"
+    gid: "{{ omit if devture_vaultwarden_gid is none else devture_vaultwarden_gid }}"
+    state: present
+  register: devture_vaultwarden_group_result
+
+- name: Ensure Vaultwarden user is created
+  ansible.builtin.user:
+    name: "{{ devture_vaultwarden_playbook_user_username }}"
+    uid: "{{ omit if devture_vaultwarden_uid is none else devture_vaultwarden_uid }}"
+    state: present
+    group: "{{ devture_vaultwarden_playbook_user_groupname }}"
+    home: "{{ devture_vaultwarden_playbook_base_path }}"
+    create_home: false
+    system: true
+  register: devture_vaultwarden_user_result
+
+- name: Initialize devture_vaultwarden_playbook_uid and devture_vaultwarden_playbook_gid
+  ansible.builtin.set_fact:
+    devture_vaultwarden_playbook_uid: "{{ devture_vaultwarden_user_result.uid }}"
+    devture_vaultwarden_playbook_gid: "{{ devture_vaultwarden_group_result.gid }}"
