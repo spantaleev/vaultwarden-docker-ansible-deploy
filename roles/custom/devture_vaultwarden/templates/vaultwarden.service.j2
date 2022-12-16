@@ -13,7 +13,7 @@ ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_s
 ExecStartPre=-{{ devture_systemd_docker_base_host_command_sh }} -c '{{ devture_systemd_docker_base_host_command_docker }} rm {{ devture_vaultwarden_identifier }} 2>/dev/null'
 
 {#
-	Health check parameters were changed (`--health-start-period` and `--health-interval`) because by default:
+	The `--health-interval` health check parameter was changed because by default:
 	- health checks start immediately.. and they always fail, because the HTTP server takes a bit of time to start
 	- the recheck interval is too long (60s) and the service is considered `starting`
 	- when a service is not `healthy`, Traefik does not reverse-proxy to it -- leading to 1 minute downtime every single time this restarts
@@ -33,7 +33,6 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% if devture_vaultwarden_container_websocket_bind_port %}
 			-p {{ devture_vaultwarden_container_websocket_bind_port }}:{{ devture_vaultwarden_config_websocket_port }} \
 			{% endif %}
-			--health-start-period=10s \
 			--health-interval=10s \
 			--env-file={{ devture_vaultwarden_base_path }}/env \
 			--label-file={{ devture_vaultwarden_base_path }}/labels \
