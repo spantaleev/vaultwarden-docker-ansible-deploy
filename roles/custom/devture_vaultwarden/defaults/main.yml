@@ -40,13 +40,18 @@ devture_vaultwarden_database_port: 5432
 devture_vaultwarden_database_name: vaultwarden
 devture_vaultwarden_database_username: ''
 devture_vaultwarden_database_password: ''
+# Use this to set the sslmode parameter of the SSL connection
+# By default, we expect a local container (without SSL), so attempting SSL connections is not necessary.
+# It's even potentially buggy too.
+# See: https://github.com/dani-garcia/vaultwarden/issues/2386
+devture_vaultwarden_database_sslmode: disable
 
 # devture_vaultwarden_config_database_url controls the DATABASE_URL environment variable.
 # See https://github.com/dani-garcia/vaultwarden/wiki/Using-the-PostgreSQL-Backend
 # and the other database-related Wiki articles
 devture_vaultwarden_config_database_url: |-
   {{
-    ('postgresql://' + devture_vaultwarden_database_username + ':' + devture_vaultwarden_database_password + '@' + devture_vaultwarden_database_hostname + ':' + devture_vaultwarden_database_port | string + '/' + devture_vaultwarden_database_name)
+    ('postgresql://' + devture_vaultwarden_database_username + ':' + devture_vaultwarden_database_password + '@' + devture_vaultwarden_database_hostname + ':' + devture_vaultwarden_database_port | string + '/' + devture_vaultwarden_database_name + '?sslmode=' + devture_vaultwarden_database_sslmode)
     if devture_vaultwarden_database_type == 'postgres'
     else ''
   }}
