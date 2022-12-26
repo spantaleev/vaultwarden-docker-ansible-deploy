@@ -6,7 +6,7 @@ devture_vaultwarden_identifier: vaultwarden
 devture_vaultwarden_server_fqn: ''
 
 devture_vaultwarden_container_image: "docker.io/vaultwarden/server:{{ devture_vaultwarden_container_image_tag }}"
-devture_vaultwarden_container_image_tag: "1.26.0-alpine"
+devture_vaultwarden_container_image_tag: "1.27.0-alpine"
 devture_vaultwarden_container_image_force_pull: "{{ devture_vaultwarden_container_image.endswith(':latest') }}"
 
 devture_vaultwarden_container_network: vaultwarden
