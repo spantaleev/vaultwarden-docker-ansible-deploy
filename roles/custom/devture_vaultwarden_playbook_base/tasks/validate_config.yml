@@ -1,0 +1,6 @@
+---
+
+- name: Fail if devture_vaultwarden_playbook_reverse_proxy_type is set incorrectly
+  ansible.builtin.fail:
+    msg: "Detected that variable devture_vaultwarden_playbook_reverse_proxy_type (current value: `{{ devture_vaultwarden_playbook_reverse_proxy_type }}`) appears to be set incorrectly. See roles/custom/devture_vaultwarden_playbook_base/defaults/main.yml for valid choices."
+  when: devture_vaultwarden_playbook_reverse_proxy_type not in ['playbook-managed-traefik', 'other-traefik-container', 'none']

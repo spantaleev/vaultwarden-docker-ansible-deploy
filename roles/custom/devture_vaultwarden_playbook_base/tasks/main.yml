@@ -8,6 +8,14 @@
     - always
 
 - block:
+    - ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+  tags:
+    - setup-all
+    - install-all
+    - setup-vaultwarden
+    - install-vaultwarden
+
+- block:
     - ansible.builtin.include_tasks: "{{ role_path }}/tasks/setup_base_dir.yml"
   tags:
     - setup-all
