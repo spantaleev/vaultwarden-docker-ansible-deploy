@@ -9,6 +9,8 @@
     # This role has no tasks at all
     - role: galaxy/com.devture.ansible.role.systemd_docker_base
 
+    - role: custom/devture_vaultwarden_playbook_migration
+
     - when: devture_vaultwarden_playbook_docker_installation_enabled | bool
       role: galaxy/geerlingguy.docker
       vars:
@@ -45,8 +47,9 @@
 
     - role: galaxy/com.devture.ansible.role.postgres_backup
 
-    - when: devture_vaultwarden_playbook_traefik_role_enabled | bool
-      role: galaxy/com.devture.ansible.role.traefik
+    - role: galaxy/com.devture.ansible.role.container_socket_proxy
+
+    - role: galaxy/com.devture.ansible.role.traefik
 
     - when: devture_systemd_service_manager_enabled | bool
       role: galaxy/com.devture.ansible.role.systemd_service_manager
