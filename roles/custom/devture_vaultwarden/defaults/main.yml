@@ -183,7 +183,7 @@ devture_vaultwarden_max_json_mb: 10
 devture_vaultwarden_container_labels_traefik_enabled: true
 devture_vaultwarden_container_labels_traefik_docker_network: ''
 devture_vaultwarden_container_labels_traefik_rule_ui: "Host(`{{ devture_vaultwarden_server_fqn }}`){% if devture_vaultwarden_path_prefix != '/' %} && PathPrefix(`{{ devture_vaultwarden_path_prefix | quote }}`){% endif %}"
-devture_vaultwarden_container_labels_traefik_rule_websocket: 'Host(`{{ devture_vaultwarden_server_fqn }}`) && Path(`{{ devture_vaultwarden_path_prefix | quote }}notifications/hub`)'
+devture_vaultwarden_container_labels_traefik_rule_websocket: 'Host(`{{ devture_vaultwarden_server_fqn }}`) && Path(`{{ devture_vaultwarden_path_prefix | quote }}/notifications/hub`)'
 devture_vaultwarden_container_labels_traefik_entrypoints: web-secure
 devture_vaultwarden_container_labels_traefik_tls_certResolver: default  # noqa var-naming
 
