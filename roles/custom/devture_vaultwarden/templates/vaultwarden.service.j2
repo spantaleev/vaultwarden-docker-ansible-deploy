@@ -26,7 +26,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--user={{ devture_vaultwarden_uid }}:{{ devture_vaultwarden_gid }} \
 			--cap-drop=ALL \
 			--read-only \
-			--hostname={{ devture_vaultwarden_server_fqn }} \
+			--hostname={{ devture_vaultwarden_hostname }} \
 			{% if devture_vaultwarden_container_http_bind_port %}
 			-p {{ devture_vaultwarden_container_http_bind_port }}:{{ devture_vaultwarden_config_rocket_port }} \
 			{% endif %}

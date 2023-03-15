@@ -8,3 +8,4 @@
   when: "item.old in vars"
   with_items:
     - {'old': 'devture_vaultwarden_playbook_traefik_role_enabled', 'new': 'devture_traefik_enabled'}
+    - {'old': 'devture_vaultwarden_server_fqn', 'new': 'devture_vaultwarden_hostname'}

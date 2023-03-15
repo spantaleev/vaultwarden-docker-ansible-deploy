@@ -43,7 +43,7 @@ After installing, you can start services with `just start-all` (or `ansible-play
 
 After some time, you should be able to access your new Vaultwarden instance at: `https://VAULTWARDEN_DOMAIN/PATH_PREFIX`, where:
 
-- `VAULTWARDEN_DOMAIN` matches your domain, as specified in `devture_vaultwarden_server_fqn` in your `vars.yml` file
+- `VAULTWARDEN_DOMAIN` matches your domain, as specified in `devture_vaultwarden_hostname` in your `vars.yml` file
 - `PATH_PREFIX` matches your path prefix, as specified in `devture_vaultwarden_path_prefix` in your `vars.yml` file
 
 To set up your first user account, you should use the `/admin` page, available at `https://VAULTWARDEN_DOMAIN/PATH_PREFIX/admin` and accessible with an admin token, as specified in `devture_vaultwarden_config_admin_token` in your `vars.yml` file.

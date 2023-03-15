@@ -6,7 +6,7 @@
       You need to define a required configuration setting (`{{ item }}`) for using this role.
   when: "vars[item] == ''"
   with_items:
-    - devture_vaultwarden_server_fqn
+    - devture_vaultwarden_hostname
     - devture_vaultwarden_generic_secret_key
     - devture_vaultwarden_uid
     - devture_vaultwarden_gid

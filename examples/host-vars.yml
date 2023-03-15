@@ -1,6 +1,16 @@
 ---
 
-devture_vaultwarden_server_fqn: "vaultwarden.YOUR_DOMAIN_NAME_HERE"
+devture_vaultwarden_hostname: "vaultwarden.YOUR_DOMAIN_NAME_HERE"
+
+# For additional security, we recommend hosting Vaultwarden at a subpath.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
+#
+# Choose your own custom path below.
+# When using a path prefix, Vaultwarden will be available at: https://VAULTWARDEN_DOMAIN/PATH_PREFIX
+# while the homepage (/) shows a 404 HTTP error.
+#
+# If you'd like to host at the root (without a path prefix), remove this configuration line.
+devture_vaultwarden_path_prefix: /my-secret-warden
 
 # A secret used as a base, for generating various other secrets.
 # You can put any string here, but generating a strong one is preferred (e.g. `pwgen -s 64 1`).
@@ -19,16 +29,6 @@ devture_postgres_connection_password: ''
 # and for doing various maintenance tasks.
 # In the future, you can also consider disabling the /admin section by removing this configuration line.
 devture_vaultwarden_config_admin_token: ''
-
-# For additional security, we recommend hosting Vaultwarden at a subpath.
-# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
-#
-# Choose your own custom path below.
-# When using a path prefix, Vaultwarden will be available at: https://VAULTWARDEN_DOMAIN/PATH_PREFIX
-# while the homepage (/) shows a 404 HTTP error.
-#
-# If you'd like to host at the root (without a path prefix), remove this configuration line.
-devture_vaultwarden_path_prefix: /my-secret-warden
 
 # Require people to validate their email addresses. When enabled, SMTP settings (below) are required.
 devture_vaultwarden_config_signups_verify: true

@@ -2,12 +2,24 @@
 
 devture_vaultwarden_identifier: vaultwarden
 
-# The fully-qualified name of your Vaultwarden server (e.g. `vaultwarden.example.com`)
-devture_vaultwarden_server_fqn: ''
+devture_vaultwarden_version: 1.27.0
 
-devture_vaultwarden_container_image: "docker.io/vaultwarden/server:{{ devture_vaultwarden_container_image_tag }}"
-devture_vaultwarden_container_image_tag: "1.27.0-alpine"
+# The fully-qualified name of your Vaultwarden server (e.g. `vaultwarden.example.com`)
+devture_vaultwarden_hostname: ''
+
+# devture_vaultwarden_path_prefix controls the URL prefix where Vaultwarden will be exposed to.
+#
+# By default (`/` prefix), it's accessible at `https://VAULTWARDEN_DOMAIN/`,
+# but you can use another prefix for additional security.
+# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
+#
+# Example: '/my-secret-warden'
+devture_vaultwarden_path_prefix: '/'
+
+devture_vaultwarden_container_image: "{{ devture_vaultwarden_container_registry_prefix }}vaultwarden/server:{{ devture_vaultwarden_container_image_tag }}"
+devture_vaultwarden_container_image_tag: "{{ devture_vaultwarden_version }}-alpine"
 devture_vaultwarden_container_image_force_pull: "{{ devture_vaultwarden_container_image.endswith(':latest') }}"
+devture_vaultwarden_container_registry_prefix: docker.io/
 
 devture_vaultwarden_container_network: vaultwarden
 
@@ -58,7 +70,7 @@ devture_vaultwarden_config_database_url: |-
 
 # devture_vaultwarden_config_domain controls the DOMAIN environment variable,
 # which tells Vaultwarden its full URL (e.g. `https://vaultwarden.DOMAIN/prefix`)
-devture_vaultwarden_config_domain: "https://{{ devture_vaultwarden_server_fqn }}{{ devture_vaultwarden_path_prefix }}"
+devture_vaultwarden_config_domain: "https://{{ devture_vaultwarden_hostname }}{{ devture_vaultwarden_path_prefix }}"
 
 # devture_vaultwarden_config_signups_enabled controls the SIGNUPS_ALLOWED environment variable.
 # See: https://github.com/dani-garcia/vaultwarden/wiki/Disable-registration-of-new-users
@@ -111,7 +123,7 @@ devture_vaultwarden_config_rocket_limits: "{json={{ devture_vaultwarden_max_json
 
 # devture_vaultwarden_config_smtp_from controls the SMTP_FROM environment variable.
 # See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
-devture_vaultwarden_config_smtp_from: "noreply@{{ devture_vaultwarden_server_fqn }}"
+devture_vaultwarden_config_smtp_from: "noreply@{{ devture_vaultwarden_hostname }}"
 
 # devture_vaultwarden_config_smtp_host controls the SMTP_HOST environment variable.
 # See: https://github.com/dani-garcia/vaultwarden/wiki/SMTP-Configuration
@@ -158,18 +170,8 @@ devture_vaultwarden_config_log_level: info
 devture_vaultwarden_config_extended_logging: false
 
 # NOTE:
-# Additional environemnt variables for configuration can be discovered from https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
+# Additional environment variables for configuration can be discovered from https://github.com/dani-garcia/vaultwarden/blob/main/.env.template
 # and configured using devture_vaultwarden_container_additional_environment_variables
-
-
-# devture_vaultwarden_path_prefix controls the URL prefix where Vaultwarden will be exposed to.
-#
-# By default (`/` prefix), it's accessible at `https://VAULTWARDEN_DOMAIN/`,
-# but you can use another prefix for additional security.
-# See: https://github.com/dani-garcia/vaultwarden/wiki/Hardening-Guide#hiding-under-a-subdir
-#
-# Example: '/my-secret-warden'
-devture_vaultwarden_path_prefix: '/'
 
 # devture_vaultwarden_max_json_mb the maximum size of uploaded JSON payloads.
 # This ultimately influences the json setting of devture_vaultwarden_config_rocket_limits.
@@ -182,8 +184,8 @@ devture_vaultwarden_max_json_mb: 10
 # To inject your own other container labels, see `devture_vaultwarden_container_labels_additional_labels`.
 devture_vaultwarden_container_labels_traefik_enabled: true
 devture_vaultwarden_container_labels_traefik_docker_network: ''
-devture_vaultwarden_container_labels_traefik_rule_ui: "Host(`{{ devture_vaultwarden_server_fqn }}`){% if devture_vaultwarden_path_prefix != '/' %} && PathPrefix(`{{ devture_vaultwarden_path_prefix | quote }}`){% endif %}"
-devture_vaultwarden_container_labels_traefik_rule_websocket: 'Host(`{{ devture_vaultwarden_server_fqn }}`) && Path(`{{ devture_vaultwarden_path_prefix | quote }}{{ "" if devture_vaultwarden_path_prefix == "/" else "/" }}notifications/hub`)'
+devture_vaultwarden_container_labels_traefik_rule_ui: "Host(`{{ devture_vaultwarden_hostname }}`){% if devture_vaultwarden_path_prefix != '/' %} && PathPrefix(`{{ devture_vaultwarden_path_prefix | quote }}`){% endif %}"
+devture_vaultwarden_container_labels_traefik_rule_websocket: 'Host(`{{ devture_vaultwarden_hostname }}`) && Path(`{{ devture_vaultwarden_path_prefix | quote }}{{ "" if devture_vaultwarden_path_prefix == "/" else "/" }}notifications/hub`)'
 devture_vaultwarden_container_labels_traefik_entrypoints: web-secure
 devture_vaultwarden_container_labels_traefik_tls_certResolver: default  # noqa var-naming
 
