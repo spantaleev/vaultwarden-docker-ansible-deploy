@@ -1,5 +1,7 @@
 # Vaultwarden server setup using Ansible and Docker
 
+**WARNING**: this playbook has been made obsolete by the [MASH playbook](https://github.com/mother-of-all-self-hosting/mash-playbook), which also supports installing the [Vaultwarden service](https://github.com/mother-of-all-self-hosting/mash-playbook/blob/main/docs/services/vaultwarden.md).
+
 This [Ansible](https://www.ansible.com/) playbook can help you set up your own [Vaultwarden](https://github.com/dani-garcia/vaultwarden) server (unofficial [Bitwarden](https://bitwarden.com/) compatible server) instance:
 
 - on your own Debian/CentOS/RedHat server
