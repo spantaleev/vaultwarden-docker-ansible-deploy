@@ -2,7 +2,7 @@
 
 ------
 
-**WARNING**: this playbook has been **made obsolete** by the [MASH playbook](https://github.com/mother-of-all-self-hosting/mash-playbook), which also supports installing the [Vaultwarden service](https://github.com/mother-of-all-self-hosting/mash-playbook/blob/main/docs/services/vaultwarden.md).
+**WARNING**: this playbook has been **made obsolete** by the [MASH playbook](https://github.com/mother-of-all-self-hosting/mash-playbook), which also supports installing the [Vaultwarden service](https://github.com/mother-of-all-self-hosting/mash-playbook/blob/main/docs/services/vaultwarden.md). There's a [migration guide](CHANGELOG.md#this-playbook-has-been-absorbed-into-the-mash-playbook) in the changelog.
 
 ------
 
